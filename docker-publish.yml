@@ -1,0 +1,55 @@
+name: Build and Push DevContainer Image
+
+# 触发条件
+on:
+  push:
+    branches:
+      - main  # 当代码推送到 main 分支时触发
+    paths:
+      - 'Dockerfile'  # 只有当 Dockerfile 被修改时才触发打包，节省资源
+  workflow_dispatch:  # 允许你在 GitHub 网页端手动点击按钮触发运行
+
+env:
+  REGISTRY: ghcr.io
+  # github.repository 会自动获取 "你的用户名/仓库名" (必须是全小写)
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    # 配置权限：允许工作流读取代码，并向 GitHub Packages 写入镜像
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # 1. 拉取你的代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 登录到 GitHub Container Registry
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          # GITHUB_TOKEN 是 GitHub 自动生成的，绝对安全，无需你手动去设置里填密码！
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. 生成镜像的标签 (这里我们固定打上 latest 标签)
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+
+      # 4. 执行 docker build 和 docker push
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
