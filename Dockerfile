@@ -35,8 +35,5 @@ RUN chsh -s $(which zsh) \
 # 5.下载 zsh-autosuggestions 插件到 oh-my-zsh 的自定义插件目录
 RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 
-# 6. 将 nvm 环境变量和加载脚本写入 .zshrc，确保进入 zsh 时 nvm/npm 可用
-RUN echo '\n# NVM Configuration\nexport NVM_DIR="$HOME/.nvm"\n[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"\n[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> ~/.zshrc
-
 # 设置工作目录
 WORKDIR /workspace
