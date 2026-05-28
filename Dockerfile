@@ -22,16 +22,20 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 # 3. 安装 nvm 和 node/npm
 # 安装完成后立即激活 nvm 并安装 LTS 版本的 Node.js（自带 npm）
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
     && . "$NVM_DIR/nvm.sh" \
     && nvm install --lts \
-    && nvm use default
+    && nvm use default \
+    && npm install -g @anthropic-ai/claude-code
 
-# 4. 配置 Zsh 为默认 Shell 并安装 Oh My Zsh (让终端更好看、好用)
+# 4. 配置 Zsh 
 RUN chsh -s $(which zsh) \
     && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
-# 5. 将 nvm 环境变量和加载脚本写入 .zshrc，确保进入 zsh 时 nvm/npm 可用
+# 5.下载 zsh-autosuggestions 插件到 oh-my-zsh 的自定义插件目录
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+
+# 6. 将 nvm 环境变量和加载脚本写入 .zshrc，确保进入 zsh 时 nvm/npm 可用
 RUN echo '\n# NVM Configuration\nexport NVM_DIR="$HOME/.nvm"\n[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"\n[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> ~/.zshrc
 
 # 设置工作目录
